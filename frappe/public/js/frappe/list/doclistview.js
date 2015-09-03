@@ -14,10 +14,14 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			if(locals["DocType"][doctype].issingle) {
 				frappe.set_re_route("Form", doctype);
 			} else {
-				new frappe.views.DocListView({
-					doctype: doctype,
-					parent: me.make_page(true)
-				});
+				if(!frappe.views.doclistview[doctype]) {
+					frappe.views.doclistview[doctype] = new frappe.views.DocListView({
+						doctype: doctype,
+						parent: me.make_page(true, "List/" + doctype)
+					});
+				} else {
+					frappe.container.change_to(frappe.views.doclistview[doctype].page_name);
+				}
 				me.set_cur_list();
 			}
 		});
@@ -65,6 +69,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		};
 
 		this.label = __(this.doctype);
+		this.page_name = "List/" + this.doctype;
 		this.dirty = true;
 		this.tags_shown = false;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
@@ -118,7 +123,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				&& !this.listview.no_delete)
 		});
 
-		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this }))
+		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this.listview }))
 			.appendTo(this.page.main.find(".list-headers"));
 	},
 
@@ -236,6 +241,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(frappe.route_options) {
 			me.set_route_options();
+			me.run();
 		} else if(me.dirty) {
 			me.run();
 		} else {
@@ -265,17 +271,22 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		});
 		frappe.route_options = null;
-		me.run();
 	},
 
 	run: function(more) {
 		// set filter from route
-		var route = frappe.get_route();
-		var me = this;
-		if(route[2]) {
-			$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
-				me.set_filter(key, val, true);
-			});
+		if(this.listview.settings.before_run) {
+			this.listview.settings.before_run(this);
+		}
+
+		if(!this.listview.settings.use_route) {
+			var route = frappe.get_route();
+			var me = this;
+			if(route[2]) {
+				$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
+					me.set_filter(key, val, true);
+				});
+			}
 		}
 
 		this.list_header.find(".list-starred-by-me")
@@ -284,6 +295,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.last_updated_on = new Date();
 		this.dirty = false;
 		this._super(more);
+
+		if(this.listview.settings.post_render) {
+			this.listview.settings.post_render(this);
+		}
 	},
 
 	make_no_result: function() {
