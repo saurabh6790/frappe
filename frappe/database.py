@@ -579,10 +579,10 @@ class Database:
 
 			if update_modified:
 				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
-					{2}""".format(dt, field, conditions), values, debug=1)
+					{2}""".format(dt, field, conditions), values, debug=debug)
 			else:
 				self.sql("""update `tab{0}` set `{1}`=%(val)s where
-					{2}""".format(dt, field, conditions), values, debug=1)
+					{2}""".format(dt, field, conditions), values, debug=debug)
 
 
 		else:

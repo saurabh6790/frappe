@@ -237,7 +237,7 @@ def get_root_of(doctype):
 
 def get_ancestors_of(doctype, name):
 	"""Get ancestor elements of a DocType with a tree structure"""
-	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"],debug=1)
+	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 	result = frappe.db.sql_list("""select name from `tab%s`
 		where lft<%s and rgt>%s order by lft desc""" % (doctype, "%s", "%s"), (lft, rgt))
 	return result or []

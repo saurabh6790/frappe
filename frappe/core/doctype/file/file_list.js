@@ -36,15 +36,23 @@ frappe.listview_settings['File'] = {
 		doclist.listview.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-delete", function(event) {
-			if(!$(this).parents(".list-row:first").data('data').is_folder){
+			if(!$(this).parents(".list-row:first").data('data').is_folder)
 				doclist.listview.settings.add_menu_item_copy(doclist);
-			}else{
-				$(this).prop('checked', false);
-				frappe.throw(__("Folde is not movable"));
-			}
 		})
-
-
+	},
+	list_view_doc:function(doclist){
+		console.log(doclist)
+		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
+			dialog = frappe.ui.get_upload_dialog({
+				"args": {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				},
+				callback: function() {
+					doclist.refresh();
+				}
+			});
+		});
 	},
 	setup_new_folder: function(doclist) {
 		doclist.page.add_menu_item(__("New Folder"), function() {
@@ -82,7 +90,7 @@ frappe.listview_settings['File'] = {
 	},
 	add_menu_item_copy: function(doclist){
 		if (!doclist.copy) {
-			doclist.page.add_menu_item(__("Copy"), function() {
+			var copy_menu = doclist.page.add_menu_item(__("Copy"), function() {
 				if(doclist.$page.find(".list-delete:checked").length){
 					doclist.selected_files = doclist.get_checked_items();
 					doclist.listview.settings.add_menu_item_paste(doclist);

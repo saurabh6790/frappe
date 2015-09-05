@@ -48,12 +48,10 @@ class File(NestedSet):
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			print "settings folder size"
-			self.fize_size = self.get_folder_size()
+			self.file_size = self.get_folder_size()
 
 			for folder in self.get_ancestors():
-				frappe.errprint("get_ancestors")
-				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder),debug=True)
+				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
 
 	def get_folder_size(self, folder=None):
 		"""Returns folder size for current folder"""
@@ -199,7 +197,8 @@ def create_new_folder(file_name, folder):
 @frappe.whitelist()
 def move_file(file_list, current_folder):
 	for file_obj in json.loads(file_list):
-		file = frappe.get_doc("File", file_obj.get("name"))
-		file.folder = current_folder
-		file.save()
-	return "files has been moved successfully!!"
+		if not file_obj.get("is_folder"):
+			file = frappe.get_doc("File", file_obj.get("name"))
+			file.folder = current_folder
+			file.save()
+	return "File(s) has been moved successfully!!"
