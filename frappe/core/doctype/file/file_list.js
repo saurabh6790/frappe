@@ -91,6 +91,7 @@ frappe.listview_settings['File'] = {
 			var copy_menu = doclist.page.add_menu_item(__("Copy"), function() {
 				if(doclist.$page.find(".list-delete:checked").length){
 					doclist.selected_files = doclist.get_checked_items();
+					doclist.old_parent = doclist.current_folder;
 					doclist.listview.settings.add_menu_item_paste(doclist);
 				}
 				else{
@@ -106,7 +107,8 @@ frappe.listview_settings['File'] = {
 				method:"frappe.core.doctype.file.file.move_file",
 				args: {
 					"file_list": doclist.selected_files,
-					"current_folder": doclist.current_folder
+					"new_parent": doclist.current_folder,
+					"old_parent": doclist.old_parent
 				},
 				callback:function(r){
 					doclist.paste = false;

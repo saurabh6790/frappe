@@ -7,6 +7,8 @@ import frappe
 import unittest
 from frappe.utils.file_manager import save_file, get_file, get_files_path
 from frappe import _
+from frappe.core.doctype.file.file import move_file
+import json
 # test_records = frappe.get_test_records('File')
 
 class TestFile(unittest.TestCase):
@@ -69,12 +71,13 @@ class TestFile(unittest.TestCase):
 			"is_folder": 1,
 			"folder": _("Home")
 		}).insert()
-
+		
 		file = frappe.get_doc("File", "/files/hello.txt")
-		file.folder = folder.name
-		file.save()
-		file.update_parent_folder_size()
-
+		
+		file_dict = [{"name": file.name}]
+		move_file(json.dumps(file_dict), folder.name, file.folder)
+		    
+		file = frappe.get_doc("File", "/files/hello.txt")
 		self.assertEqual(_("Home/Test_Folder_Copy"), file.folder)
 
 	def execute_test_non_parent_folder(self):

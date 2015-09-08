@@ -12,7 +12,7 @@ import frappe, frappe.utils
 from frappe.utils.file_manager import delete_file_data_content
 from frappe import _
 
-from frappe.utils.nestedset import NestedSet
+from frappe.utils.nestedset import NestedSet, get_successor_of
 import json
 
 class File(NestedSet):
@@ -24,13 +24,16 @@ class File(NestedSet):
 		self.set_folder_name()
 		self.set_name()
 
+	def get_name_based_on_parent_folder(self):
+		path = get_breadcrumbs(self.folder)
+		folder_name = frappe.get_value("File", self.folder, "file_name")
+		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+		
 	def set_name(self):
 		"""Set name for folder"""
 		if self.is_folder:
 			if self.folder:
-				path = get_breadcrumbs(self.folder)
-				folder_name = frappe.get_value("File", self.folder, "file_name")
-				self.name = "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+				self.name = self.get_name_based_on_parent_folder()
 			else:
 				# home
 				self.name = self.file_name
@@ -39,7 +42,14 @@ class File(NestedSet):
 
 	def after_insert(self):
 		self.update_parent_folder_size()
-
+	
+	def after_rename(self, olddn, newdn, merge=False):
+		for successor in self.get_successor():
+			setup_folder_path(successor, self.name)
+	
+	def get_successor(self):
+		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
+	
 	def validate(self):
 		self.validate_duplicate_entry()
 		self.validate_folder()
@@ -60,8 +70,6 @@ class File(NestedSet):
 			folder = self.name
 		file_size =  frappe.db.sql("""select sum(ifnull(file_size,0))
 			from tabFile where folder=%s """, (folder))[0][0]
-
-		frappe.errprint(file_size)
 
 		return file_size
 
@@ -202,10 +210,20 @@ def create_new_folder(file_name, folder):
 	file.insert()
 
 @frappe.whitelist()
-def move_file(file_list, current_folder):
+def move_file(file_list, new_parent, old_parent):
 	for file_obj in json.loads(file_list):
-		file = frappe.get_doc("File", file_obj.get("name"))
-		file.folder = current_folder
-		file.save()
-		file.update_parent_folder_size()
+		setup_folder_path(file_obj.get("name"), new_parent)
+
+	# recalculate sizes
+	frappe.get_doc("File", old_parent).save()
+	frappe.get_doc("File", new_parent).save()
+
 	return "File(s) has been moved successfully!!"
+	
+def setup_folder_path(filename, new_parent):
+	file = frappe.get_doc("File", filename)
+	file.folder = new_parent
+	file.save()
+	
+	if file.is_folder:
+		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder())
