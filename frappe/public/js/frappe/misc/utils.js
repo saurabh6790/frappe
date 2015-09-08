@@ -486,5 +486,9 @@ frappe.utils = {
 
 		// reset the original title
 		frappe.utils.set_title(frappe._original_title);
+	},
+
+	is_image_file: function(filename) {
+		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
 	}
 };
