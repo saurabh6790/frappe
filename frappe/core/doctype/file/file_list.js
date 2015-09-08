@@ -36,12 +36,10 @@ frappe.listview_settings['File'] = {
 		doclist.listview.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-delete", function(event) {
-			if(!$(this).parents(".list-row:first").data('data').is_folder)
 				doclist.listview.settings.add_menu_item_copy(doclist);
 		})
 	},
 	list_view_doc:function(doclist){
-		console.log(doclist)
 		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
 			dialog = frappe.ui.get_upload_dialog({
 				"args": {

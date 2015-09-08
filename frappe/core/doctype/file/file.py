@@ -16,7 +16,7 @@ from frappe.utils.nestedset import NestedSet
 import json
 
 class File(NestedSet):
-	nsm_parent_field = 'folder';
+	nsm_parent_field = 'folder'
 	no_feed_on_delete = True
 
 	def before_insert(self):
@@ -49,6 +49,7 @@ class File(NestedSet):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
 			self.file_size = self.get_folder_size()
+			frappe.db.set_value("File", self.name, "file_size", self.file_size)
 
 			for folder in self.get_ancestors():
 				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
@@ -57,8 +58,12 @@ class File(NestedSet):
 		"""Returns folder size for current folder"""
 		if not folder:
 			folder = self.name
-		return frappe.db.sql("""select sum(ifnull(file_size,0))
-			from tabFile where folder=%s """, folder, debug=1)[0][0]
+		file_size =  frappe.db.sql("""select sum(ifnull(file_size,0))
+			from tabFile where folder=%s """, (folder))[0][0]
+
+		frappe.errprint(file_size)
+
+		return file_size
 
 	def update_parent_folder_size(self):
 		"""Update size of parent folder"""
@@ -138,6 +143,8 @@ class File(NestedSet):
 		self.check_reference_doc_permission()
 		super(File, self).on_trash()
 		self.delete_file()
+
+	def after_delete(self):
 		self.update_parent_folder_size()
 
 	def check_folder_is_empty(self):
@@ -197,8 +204,8 @@ def create_new_folder(file_name, folder):
 @frappe.whitelist()
 def move_file(file_list, current_folder):
 	for file_obj in json.loads(file_list):
-		if not file_obj.get("is_folder"):
-			file = frappe.get_doc("File", file_obj.get("name"))
-			file.folder = current_folder
-			file.save()
+		file = frappe.get_doc("File", file_obj.get("name"))
+		file.folder = current_folder
+		file.save()
+		file.update_parent_folder_size()
 	return "File(s) has been moved successfully!!"
