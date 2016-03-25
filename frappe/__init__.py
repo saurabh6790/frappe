@@ -785,8 +785,11 @@ def get_attr(method_string):
 
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
-	return getattr(get_module(modulename), methodname)
-
+	try:
+		return getattr(get_module(modulename), methodname)
+	except AttributeError:
+		return None
+		
 def call(fn, *args, **kwargs):
 	"""Call a function and match arguments."""
 	if hasattr(fn, 'fnargs'):

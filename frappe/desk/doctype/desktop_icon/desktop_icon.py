@@ -234,7 +234,11 @@ def sync_desktop_icons():
 def sync_from_app(app):
 	'''Sync desktop icons from app. To be called during install'''
 	try:
-		modules = frappe.get_attr(app + '.config.desktop.get_data')() or {}
+		method = frappe.get_attr(app + '.config.desktop.get_data')
+		if method:
+			modules = method()
+		else:
+			modules = {}
 	except ImportError:
 		return []
 
