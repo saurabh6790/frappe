@@ -13,7 +13,7 @@ queue_timeout = {
 	'short': 300
 }
 
-def enqueue(method, queue='default', timeout=300, event=None,
+def enqueue(method, queue='default', timeout=None, event=None,
 	async=True, job_name=None, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
