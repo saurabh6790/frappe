@@ -22,7 +22,7 @@ reflags = {
 }
 
 @frappe.whitelist()
-def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None):
+def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No",select_columns=None, filters=None):
 	all_doctypes = all_doctypes=="Yes"
 	if select_columns:
 		select_columns = json.loads(select_columns);
@@ -175,7 +175,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		w.writerow(inforow)
 		w.writerow([get_data_keys_definition().data_separator])
 
-	def add_data():
+	def add_data(filters=None):
 		def add_data_row(row_group, dt, doc, rowidx):
 			d = doc.copy()
 			meta = frappe.get_meta(dt)
@@ -208,7 +208,11 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				order_by = '`tab{doctype}`.`lft` asc'.format(doctype=parent_doctype)
 
 			# get permitted data only
-			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None, order_by=order_by)
+			if filters:
+				filters = json.loads(filters)
+			else:
+				filters = []
+			data = frappe.get_list(doctype, fields=["*"], filters=filters, limit_page_length=None, order_by=order_by)
 
 			for doc in data:
 				op = docs_to_export.get("op")
@@ -273,7 +277,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				build_field_columns(d)
 
 	add_field_headings()
-	add_data()
+	add_data(filters)
 
 	# write out response as a type csv
 	frappe.response['result'] = cstr(w.getvalue())

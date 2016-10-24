@@ -441,7 +441,7 @@ frappe.ui.Filter = Class.extend({
 					: __("use % as wildcard"))+'</div>');
 			} else {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, null,
-					 condition);
+					condition);
 			}
 		});
 
@@ -802,6 +802,7 @@ frappe.ui.FieldSelect = Class.extend({
 		}
 
 		// main table
+		console.log(me.doctype)
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
 			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))

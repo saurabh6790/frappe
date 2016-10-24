@@ -29,6 +29,8 @@ frappe.DataImportTool = Class.extend({
 	},
 	make: function() {
 		var me = this;
+		
+		me.filters = [];
 		frappe.boot.user.can_import = frappe.boot.user.can_import.sort();
 
 		$(frappe.render_template("data_import_main", this)).appendTo(this.page.main);
@@ -36,6 +38,7 @@ frappe.DataImportTool = Class.extend({
 		this.select = this.page.main.find("select.doctype");
 		this.select_columns = this.page.main.find('.select-columns');
 		this.select.on("change", function() {
+			$(".filter_area").empty();
 			me.doctype = $(this).val();
 			frappe.model.with_doctype(me.doctype, function() {
 				me.page.main.find(".export-import-section").toggleClass(!!me.doctype);
@@ -45,11 +48,11 @@ frappe.DataImportTool = Class.extend({
 					var parent_doctype = frappe.get_doc('DocType', me.doctype);
 					parent_doctype["reqd"] = true;
 					var doctype_list = [parent_doctype];
-					
+					me.set_filters(parent_doctype);
 					frappe.meta.get_table_fields(me.doctype).forEach(function(df) {
 						var d = frappe.get_doc('DocType', df.options);
 						d["reqd"]=df.reqd;
-						doctype_list.push(d);						
+						doctype_list.push(d);
 					});
 					$(frappe.render_template("data_import_tool_columns", {doctype_list: doctype_list}))
 						.appendTo(me.select_columns.empty());
@@ -79,8 +82,25 @@ frappe.DataImportTool = Class.extend({
 		});
 
 	},
+	set_filters: function(doc){
+		var me = this;
+		$('.new-filter').unbind().bind('click', function() {
+			me.filter = new frappe.ui.Filter({
+				flist: {"wrapper": $(".data-import-tool"), "doctype": me.doctype, "listobj": doc},
+				_doctype: me.doctype,
+				fieldname: 'name'
+			});
+			$(".set-filter-and-run").off("click");
+			$(".set-filter-and-run").bind("click", function() {
+				me.filters.push(me.filter.get_value());
+				me.filter.freeze();
+			});
+			
+		});
+	},
 	get_export_url: function(with_data) {
 		var doctype = this.select.val();
+		var me = this;
 		var columns = {};
 
 		this.select_columns.find('.select-column-check:checked').each(function() {
@@ -96,6 +116,7 @@ frappe.DataImportTool = Class.extend({
 			+ "doctype=" + doctype
 			+ "&parent_doctype=" + doctype
 			+ "&select_columns=" + JSON.stringify(columns)
+			+ "&filters=" + JSON.stringify(me.filters)
 			+ "&with_data="+ (with_data ? 'Yes' : 'No')+"&all_doctypes=Yes";
 	},
 	make_upload: function() {

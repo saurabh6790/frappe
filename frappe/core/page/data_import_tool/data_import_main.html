@@ -15,7 +15,18 @@
         </div>
     </div>
     <div class="export-import-section hide"  style="max-width: 700px;">
-		<h4>{{ __("1. Select Columns") }}</h4>
+		<h4>{{ __("1. Set Filters") }}</h4>
+		<div class="set-filters">
+			<div class="show_filters">
+				<div class="set-filters">
+					<button class="btn btn-default btn-xs new-filter text-muted" style="margin-right: 10px;">
+						{%= __("Add Filter") %}</button>
+				</div>
+				<div class="filter_area"></div>
+			</div>
+		</div>
+		<br>
+		<h4>{{ __("2. Select Columns") }}</h4>
         <p>
 			<a class="btn btn-default btn-xs btn-select-all" style="margin-right: 7px;">
             {%= __("Select All") %}</a>
@@ -27,7 +38,7 @@
 		<div class="select-columns">
 		</div>
 		<br>
-		<h4>{{ __("2. Download") }}</h4>
+		<h4>{{ __("3. Download") }}</h4>
 		<div class="row">
             <div class="col-sm-4">
                 <p><a class="btn btn-primary btn-xs btn-download-template">
