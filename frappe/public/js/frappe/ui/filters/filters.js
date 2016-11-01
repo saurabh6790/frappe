@@ -460,6 +460,10 @@ frappe.ui.Filter = Class.extend({
 		this.field = null;
 		this.flist.update_filters();
 
+		//window.dont_run get set from data-import-tool
+		if(window.dont_run)
+			dont_run = window.dont_run;
+
 		if(!dont_run) {
 			this.flist.listobj.dirty = true;
 			this.flist.listobj.clean_dash = true;
@@ -684,7 +688,6 @@ frappe.ui.Filter = Class.extend({
 
 		// for translations
 		// __("like"), __("not like"), __("in")
-
 		this.$btn_group.find(".toggle-filter")
 			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
@@ -802,7 +805,6 @@ frappe.ui.FieldSelect = Class.extend({
 		}
 
 		// main table
-		console.log(me.doctype)
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
 			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))

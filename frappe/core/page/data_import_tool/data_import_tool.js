@@ -84,25 +84,70 @@ frappe.DataImportTool = Class.extend({
 	},
 	set_filters: function(doc){
 		var me = this;
+		window.dont_run = true;
 		$('.new-filter').unbind().bind('click', function() {
 			me.filter = new frappe.ui.Filter({
-				flist: {"wrapper": $(".data-import-tool"), "doctype": me.doctype, "listobj": doc},
+				flist: {"wrapper": $(".data-import-tool"), "doctype": me.doctype, "listobj": doc, update_filters: me.update_filters},
 				_doctype: me.doctype,
 				fieldname: 'name'
 			});
-			$(".set-filter-and-run").off("click");
-			$(".set-filter-and-run").bind("click", function() {
-				me.filters.push(me.filter.get_value());
-				me.filter.freeze();
-			});
-			
+			me.filter.wrapper.find(".set-filter-and-run").off("click");
+			me.set_filter_event();
 		});
+	},
+	set_filter_event: function(){
+		var me = this;
+		$(".set-filter-and-run").click(function () {
+			var fieldname = $(this).closest(".list_filter").find(".frappe-control").data("fieldname");
+
+			if(!me.filter) {
+				me.filter = me.get_filter(fieldname)
+			}
+
+			values = me.filter.get_value()
+			if(!me.filter_exists(values[0], values[1], values[2], values[3])){
+				me.filters.push(me.filter);
+			}
+			me.filter.freeze();
+			me.filter=null;
+		});
+	},
+	filter_exists: function(doctype, fieldname, condition, value) {
+		for(var i in this.filters) {
+			if(this.filters[i].field) {
+				var f = this.filters[i].get_value();
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
+					&& f[3]==value) return true;
+			}
+		}
+		return false;
+	},
+	get_filters: function(){
+		var values = [];
+		$.each(this.filters, function(i, f) {
+			if(f.field) {
+				values.push(f.get_value());
+			}
+		})
+		return values;
+	},
+	update_filters: function(){
+		var fl = [];
+		$.each(this.filters, function(i, f) {
+			if(f.field) fl.push(f);
+		})
+		this.filters = fl;
+	},
+	get_filter: function(fieldname) {
+		for(var i in this.filters) {
+			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
+				return this.filters[i];
+		}
 	},
 	get_export_url: function(with_data) {
 		var doctype = this.select.val();
 		var me = this;
 		var columns = {};
-
 		this.select_columns.find('.select-column-check:checked').each(function() {
 			var _doctype = $(this).attr('data-doctype');
 			var _fieldname = $(this).attr('data-fieldname');
@@ -116,7 +161,7 @@ frappe.DataImportTool = Class.extend({
 			+ "doctype=" + doctype
 			+ "&parent_doctype=" + doctype
 			+ "&select_columns=" + JSON.stringify(columns)
-			+ "&filters=" + JSON.stringify(me.filters)
+			+ "&filters=" + JSON.stringify(me.get_filters())
 			+ "&with_data="+ (with_data ? 'Yes' : 'No')+"&all_doctypes=Yes";
 	},
 	make_upload: function() {
