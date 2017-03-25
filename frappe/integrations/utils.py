@@ -42,6 +42,12 @@ def make_post_request(url, auth=None, data=None):
 		frappe.log_error()
 		raise exc
 
+def make_put_request():
+	pass
+
+def make_delete_request():
+	pass
+
 def create_request_log(data, integration_type, service_name, name=None):
 	if isinstance(data, basestring):
 		data = json.loads(data)

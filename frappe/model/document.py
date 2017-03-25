@@ -217,6 +217,7 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
+		self.flags.create_event = True
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -802,6 +803,7 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+		self.run_webhook_handler()
 
 		try:
 			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
@@ -833,6 +835,10 @@ class Document(BaseDocument):
 			not self.meta.get("istable"):
 			frappe.publish_realtime("list_update", {"doctype": self.doctype}, after_commit=True)
 
+	def run_webhook_handler(self):
+		from frappe.core.doctype.webhook.webhook import webhook_handler
+		webhook_event = "Create" if self.flags.create_event else self._action.title()
+		webhook_handler(doc=self.as_dict(), webhook_event=webhook_event)
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
