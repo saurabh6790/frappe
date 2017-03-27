@@ -11,7 +11,7 @@ frappe.ui.form.on('Webhook', {
 	},
 	
 	toggle_auth_params: function(frm){
-		frm.toggle_display(["username", "password"], frm.doc.authentication_type=='Basic Authentication')
+		frm.toggle_display(["username", "password", "login_required"], frm.doc.authentication_type=='Basic Authentication')
 		frm.toggle_display(["client_key", "client_secret", "resource_owner_key", "resource_owner_secret"],
 			frm.doc.authentication_type=='OAuth 1')
 	}

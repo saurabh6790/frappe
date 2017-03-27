@@ -8,6 +8,28 @@ import json, urlparse
 from frappe.utils import get_request_session
 from frappe import _
 
+def initiatesession(fn):
+	def innnerfunction(*args, **kwargs):
+		if not kwargs.get('auth'):
+			return
+
+		session = get_request_session()
+		r = session.post('https://test-inr.erpnext.com/', data={
+			'cmd': 'login',
+			'usr': kwargs['auth'][0],
+			'pwd': kwargs['auth'][1]
+		})
+
+		r.raise_for_status()
+
+		kwargs.update({
+			"session": session,
+			"auth": ''
+		})
+		fn(*args, **kwargs)
+
+	return innnerfunction
+
 def make_get_request(url, auth=None, data=None):
 	if not auth:
 		auth = ''
@@ -24,14 +46,18 @@ def make_get_request(url, auth=None, data=None):
 		frappe.log_error(frappe.get_traceback())
 		raise exc
 
-def make_post_request(url, auth=None, data=None):
+@initiatesession
+def make_post_request(url, auth=None, data=None, session=None):
 	if not auth:
 		auth = ''
 	if not data:
 		data = {}
+
 	try:
-		s = get_request_session()
-		res = s.post(url, data=data, auth=auth)
+		if not session:
+			session = get_request_session()
+
+		res = session.post(url, data=data, auth=auth)
 		res.raise_for_status()
 
 		if res.headers.get("content-type") == "text/plain; charset=utf-8":
@@ -42,8 +68,28 @@ def make_post_request(url, auth=None, data=None):
 		frappe.log_error()
 		raise exc
 
-def make_put_request():
-	pass
+@initiatesession
+def make_put_request(url, auth=None, data=None, session=None):
+	if not auth:
+		auth = ''
+	if not data:
+		data = {}
+
+	try:
+		if not session:
+			session = get_request_session()
+
+		res = session.put(url, data=data, auth=auth)
+		print res.text
+		res.raise_for_status()
+
+		if res.headers.get("content-type") == "text/plain; charset=utf-8":
+			return urlparse.parse_qs(res.text)
+
+		return res.json()
+	except Exception, exc:
+		frappe.log_error()
+		raise exc
 
 def make_delete_request():
 	pass
@@ -98,3 +144,4 @@ def create_payment_gateway(gateway):
 			"gateway": gateway
 		})
 		payment_gateway.insert(ignore_permissions=True)
+	

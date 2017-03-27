@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+import json
 
 class Webhook(Document):
 	pass
@@ -26,15 +27,16 @@ def initiateREST(doc, webhook_event, webhook, resource_uri):
 
 	method = get_method(webhook_event)
 	if method:
-		method(resource_uri)
+		doc.pop("modified")
+		method(resource_uri.format(doc.name), auth=auth, data=json.dumps(doc))
 
 def prepare_auth(webhook):
-	webhook = frappe.db.get_value("Webhook", webhook, ["username", "password", "client_key", "client_secret",
-		"resource_owner_key", "resource_owner_secret", "enabled", "authentication_type"], as_dict=1)
+	webhook = frappe.get_doc("Webhook", webhook)
 
 	if not webhook.enabled:
 		return None
-
+	
+	descrept_secret(webhook)
 	if webhook.authentication_type == "Basic Authentication":
 		return (webhook.username, webhook.password)
 
@@ -48,3 +50,11 @@ def get_method(event):
 		"Cancel": make_put_request,
 		"Delete": make_delete_request
 	}[event]
+
+def descrept_secret(doc):
+	for field in doc.meta.fields:
+		if field.fieldtype == "Password":
+			doc.update({
+				field.fieldname: doc.get_password(field.fieldname, raise_exception=False)
+			})
+
