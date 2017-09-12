@@ -40,6 +40,7 @@ def start_scheduler():
 
 def enqueue_events_for_all_sites():
 	'''Loop through sites and enqueue events that are not already queued'''
+
 	with frappe.init_site():
 		jobs_per_site = get_jobs()
 		sites = get_sites()
@@ -54,6 +55,10 @@ def enqueue_events_for_all_sites():
 def enqueue_events_for_site(site, queued_jobs):
 	try:
 		frappe.init(site=site)
+
+		if os.path.exists(os.path.join('.', '.restarting')):
+			return
+
 		if frappe.local.conf.maintenance_mode:
 			return
 
