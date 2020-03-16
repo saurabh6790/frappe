@@ -51,7 +51,7 @@ def import_package(package=None):
 	content = json.loads(package)
 	length = len(content)
 
-	for idx, doc in enumerate(content.get("message").get("data")):
+	for idx, doc in enumerate(content):
 		frappe.publish_realtime("importing_package", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
 		frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
