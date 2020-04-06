@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "creation": "2020-03-14 11:20:14.850552",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "export_package",
+  "import_section",
+  "attach",
+  "import"
+ ],
+ "fields": [
+  {
+   "description": "Click on the row for accessing filters.",
+   "fieldname": "export_package",
+   "fieldtype": "Table",
+   "label": "Package",
+   "options": "Package DocType"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "attach",
+   "fieldname": "import_section",
+   "fieldtype": "Section Break",
+   "label": "Import Package"
+  },
+  {
+   "fieldname": "import",
+   "fieldtype": "Button",
+   "label": "Import"
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach Package"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-03-19 22:03:06.012473",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Package",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
